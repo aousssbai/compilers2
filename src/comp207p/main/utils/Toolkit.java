@@ -15,8 +15,8 @@ public class Toolkit {
     //=================================DEFINITION OF TOOLBOX FUNCTIONS========================================================================================================================================
 
 
-    public static String getInstructionSignature(InstructionHandle h, ConstantPoolGen cpgen) {
-        Instruction instruction = h.getInstruction();
+    public static String retrieve_Sign(InstructionHandle handle, ConstantPoolGen cpgen) {
+        Instruction instruction = handle.getInstruction();
         if(!(instruction instanceof TypedInstruction)) {
             throw new RuntimeException();
         }
@@ -24,7 +24,7 @@ public class Toolkit {
         if(instruction instanceof LoadInstruction) {
             int localVariableIndex = ((LocalVariableInstruction) instruction).getIndex();
 
-            InstructionHandle handleIterator = h;
+            InstructionHandle handleIterator = handle;
             while (!(instruction instanceof StoreInstruction) || ((StoreInstruction) instruction).getIndex() != localVariableIndex) {
                 handleIterator = handleIterator.getPrev();
                 instruction = handleIterator.getInstruction();
@@ -39,21 +39,21 @@ public class Toolkit {
     }
 
 
-    public static boolean checkSignature(InstructionHandle left, InstructionHandle right, ConstantPoolGen cpgen, String signature) {
-        if (left.getInstruction() instanceof LoadInstruction && right.getInstruction() instanceof LoadInstruction) {
-            if (getInstructionSignature(left, cpgen).equals(signature) || getInstructionSignature(right, cpgen).equals(signature)) {
+    public static boolean verif_sign(InstructionHandle first, InstructionHandle second, ConstantPoolGen cpgen, String sign) {
+        if (first.getInstruction() instanceof LoadInstruction && second.getInstruction() instanceof LoadInstruction) {
+            if (retrieve_Sign(first, cpgen).equals(sign) || retrieve_Sign(second, cpgen).equals(sign)) {
                 return true;
             }
-        } else if (left.getInstruction() instanceof LoadInstruction) {
-            if (getInstructionSignature(left, cpgen).equals(signature) || ((TypedInstruction)right.getInstruction()).getType(cpgen).getSignature().equals(signature)) {
+        } else if (first.getInstruction() instanceof LoadInstruction) {
+            if (retrieve_Sign(first, cpgen).equals(sign) || ((TypedInstruction)second.getInstruction()).getType(cpgen).getSignature().equals(sign)) {
                 return true;
             }
-        } else if (right.getInstruction() instanceof LoadInstruction) {
-            if (((TypedInstruction)left.getInstruction()).getType(cpgen).getSignature().equals(signature) || getInstructionSignature(right, cpgen).equals(signature) ) {
+        } else if (second.getInstruction() instanceof LoadInstruction) {
+            if (((TypedInstruction)first.getInstruction()).getType(cpgen).getSignature().equals(sign) || retrieve_Sign(second, cpgen).equals(sign) ) {
                 return true;
             }
         } else {
-            if(((TypedInstruction)left.getInstruction()).getType(cpgen).getSignature().equals(signature) || ((TypedInstruction)right.getInstruction()).getType(cpgen).getSignature().equals(signature)) {
+            if(((TypedInstruction)first.getInstruction()).getType(cpgen).getSignature().equals(sign) || ((TypedInstruction)second.getInstruction()).getType(cpgen).getSignature().equals(sign)) {
                 return true;
             }
         }
@@ -63,7 +63,7 @@ public class Toolkit {
 
 
 
-    public static int insertion(Number value, String type, ConstantPoolGen cpgen)
+    public static int typeInsertion(Number value, String type, ConstantPoolGen cpgen)
     {
 
 
@@ -97,97 +97,102 @@ public class Toolkit {
         }
     }
 
-    public static int checkFirstComparison(InstructionHandle comparison, Number leftValue, Number rightValue)
+    public static int initialComp(InstructionHandle comparison, Number first, Number second)
     {
         if (comparison.getInstruction() instanceof DCMPG)
         {
-            if (leftValue.doubleValue() > rightValue.doubleValue()) return 1;
+            if (first.doubleValue() > second.doubleValue()) return 1;
             else return -1;
         }
         else if (comparison.getInstruction() instanceof DCMPL)
         {
-            if (leftValue.doubleValue() < rightValue.doubleValue()) return -1;
+            if (first.doubleValue() < second.doubleValue()) return -1;
             else return 1;
         }
         else if (comparison.getInstruction() instanceof FCMPG)
         {
-            if (leftValue.floatValue() > rightValue.floatValue()) return 1;
+            if (first.floatValue() > second.floatValue()) return 1;
             else return -1;
         }
         else if (comparison.getInstruction() instanceof FCMPL)
         {
-            if (leftValue.floatValue() < rightValue.floatValue()) return -1;
+            if (first.floatValue() < second.floatValue()) return -1;
             else return 1;
         }
         else if (comparison.getInstruction() instanceof LCMP)
         {
-            if (leftValue.longValue() == rightValue.longValue()) return 0;
-            else if (leftValue.longValue() > rightValue.longValue()) return 1;
+            if (first.longValue() == second.longValue()) return 0;
+            else if (first.longValue() > second.longValue()) return 1;
             else return -1;
         }
         else
         {
-            throw new RuntimeException("Comparison not defined");
+            throw new RuntimeException("error");
         }
     }
 
-    public static int checkSecondComparison(IfInstruction comparison, int value)
+    public static int finalComp(IfInstruction comparison, int val)
     {
         if (comparison instanceof IFEQ || comparison instanceof IF_ICMPEQ)
         { //if equal
-            if (value == 0) return 1;
+            if (val == 0) return 1;
             else return 0;
         }
         else if (comparison instanceof IFGE || comparison instanceof IF_ICMPGE)
         { //if greater than or equal
-            if (value >= 0) return 1;
+            if (val >= 0) return 1;
             else return 0;
         }
         else if (comparison instanceof IFGT || comparison instanceof IF_ICMPGT)
         { //if greater than
-            if (value > 0) return 1;
+            if (val > 0) return 1;
             else return 0;
         }
         else if (comparison instanceof IFLE || comparison instanceof IF_ICMPLE)
         { //if less than or equal
-            if (value <= 0) return 1;
+            if (val <= 0) return 1;
             else return 0;
         }
         else if (comparison instanceof IFLT || comparison instanceof IF_ICMPLT)
         { //if less than
-            if (value < 0) return 1;
+            if (val < 0) return 1;
             else return 0;
         }
         else if (comparison instanceof IFNE || comparison instanceof IF_ICMPNE)
         { //if not equal
-            if (value != 0) return 1;
+            if (val != 0) return 1;
             else return 0;
         }
         else
         {
-            throw new RuntimeException("Comparison not defined, got: " + comparison.getClass());
+            throw new RuntimeException("error");
         }
     }
 
-    public static Number getValue(InstructionHandle h, ConstantPoolGen cpgen, InstructionList list, String type) throws UnableToFetchValueException {
-        Instruction instruction = h.getInstruction();
-        if(instruction instanceof LoadInstruction) {
-            return getLoadInstructionValue(h, cpgen, list, type);
-        } else {
-            return getConstantValue(h, cpgen);
+    public static Number retrieve_Val(InstructionHandle instruct, ConstantPoolGen cpgen, InstructionList register, String type) throws UnableToFetchValueException {
+        Instruction instruction = instruct.getInstruction();
+
+        if(instruction instanceof LoadInstruction)
+        {
+            return extract_instruct_val(instruct, cpgen, register, type);
+        }
+
+        else
+        {
+            return extract_const_val(instruct, cpgen);
         }
     }
 
 
-    public static Number getConstantValue(InstructionHandle h, ConstantPoolGen cpgen) {
+    public static Number extract_const_val(InstructionHandle instruct, ConstantPoolGen cpgen) {
         Number value;
 
-        if (h.getInstruction() instanceof ConstantPushInstruction) {
-            value = ((ConstantPushInstruction) h.getInstruction()).getValue();
-        } else if (h.getInstruction() instanceof LDC) {
-            value = (Number) ((LDC) h.getInstruction()).getValue(cpgen);
-        } else if (h.getInstruction() instanceof LDC2_W) {
-            value = ((LDC2_W) h.getInstruction()).getValue(cpgen);
+        if (instruct.getInstruction() instanceof ConstantPushInstruction) {
+            value = ((ConstantPushInstruction) instruct.getInstruction()).getValue();
+        } else if (instruct.getInstruction() instanceof LDC) {
+            value = (Number) ((LDC) instruct.getInstruction()).getValue(cpgen);
+        } else if (instruct.getInstruction() instanceof LDC2_W) {
+            value = ((LDC2_W) instruct.getInstruction()).getValue(cpgen);
         } else {
             throw new RuntimeException();
         }
@@ -196,15 +201,15 @@ public class Toolkit {
     }
 
 
-    public static Number getLoadInstructionValue(InstructionHandle h, ConstantPoolGen cpgen, InstructionList list, String type) throws UnableToFetchValueException {
-        Instruction instruction = h.getInstruction();
+    public static Number extract_instruct_val(InstructionHandle instruct, ConstantPoolGen cpgen, InstructionList register, String type) throws UnableToFetchValueException {
+        Instruction instruction = instruct.getInstruction();
         if(!(instruction instanceof LoadInstruction)) {
             throw new RuntimeException("error");
         }
 
         int localVariableIndex = ((LocalVariableInstruction) instruction).getIndex();
 
-        InstructionHandle handleIterator = h;
+        InstructionHandle handleIterator = instruct;
         int incrementAccumulator = 0;
         while(!(instruction instanceof StoreInstruction) || ((StoreInstruction) instruction).getIndex() != localVariableIndex) {
 
@@ -213,7 +218,7 @@ public class Toolkit {
 
                 if(increment.getIndex() == localVariableIndex) {
 
-                    if(checkDynamicVariable(h, list)) {
+                    if(verif_active_var(instruct, register)) {
                         throw new UnableToFetchValueException("Error");
                     }
                     incrementAccumulator += increment.getIncrement();
@@ -246,12 +251,12 @@ public class Toolkit {
         if (type=="D")
 
         {
-            return foldOperation(new DADD(), storeValue, incrementAccumulator);
+            return ops(new DADD(), storeValue, incrementAccumulator);
         }
 
         else
         {
-            return foldOperation(new LADD(), storeValue, incrementAccumulator);
+            return ops(new LADD(), storeValue, incrementAccumulator);
         }
 
     }
@@ -260,85 +265,85 @@ public class Toolkit {
 
 
 
-    public static Number foldOperation(ArithmeticInstruction operation, Number left, Number right)
+    public static Number ops(ArithmeticInstruction operation, Number first, Number second)
     {
         if (operation instanceof IADD || operation instanceof LADD)
         {
-            return left.longValue() + right.longValue();
+            return first.longValue() + second.longValue();
         }
         else if (operation instanceof FADD || operation instanceof DADD)
         {
-            return left.doubleValue() + right.doubleValue();
+            return first.doubleValue() + second.doubleValue();
         }
         else if (operation instanceof ISUB || operation instanceof LSUB)
         {
-            return left.longValue() - right.longValue();
+            return first.longValue() - second.longValue();
         }
         else if (operation instanceof FSUB || operation instanceof DSUB)
         {
-            return left.doubleValue() - right.doubleValue();
+            return first.doubleValue() - second.doubleValue();
         }
         else if (operation instanceof IMUL || operation instanceof LMUL)
         {
-            return left.longValue() * right.longValue();
+            return first.longValue() * second.longValue();
         }
         else if (operation instanceof FMUL || operation instanceof DMUL)
         {
-            return left.doubleValue() * right.doubleValue();
+            return first.doubleValue() * second.doubleValue();
         }
         else if (operation instanceof IDIV || operation instanceof LDIV)
         {
-            return left.longValue() / right.longValue();
+            return first.longValue() / second.longValue();
         }
         else if (operation instanceof FDIV || operation instanceof DDIV)
         {
-            return left.doubleValue() / right.doubleValue();
+            return first.doubleValue() / second.doubleValue();
         }
         else if (operation instanceof IREM || operation instanceof LREM)
         {
-            return left.longValue() % right.longValue();
+            return first.longValue() % second.longValue();
         }
         else if (operation instanceof FREM || operation instanceof DREM)
         {
-            return left.doubleValue() % right.doubleValue();
+            return first.doubleValue() % second.doubleValue();
         }
         else if (operation instanceof IAND || operation instanceof LAND)
         {
-            return left.longValue() & right.longValue();
+            return first.longValue() & second.longValue();
         }
         else if (operation instanceof IOR || operation instanceof LOR)
         {
-            return left.longValue() | right.longValue();
+            return first.longValue() | second.longValue();
         }
         else if (operation instanceof IXOR || operation instanceof LXOR)
         {
-            return left.longValue() ^ right.longValue();
+            return first.longValue() ^ second.longValue();
         }
         else if (operation instanceof ISHL || operation instanceof LSHL)
         {
-            return left.longValue() << right.longValue();
+            return first.longValue() << second.longValue();
         }
         else if (operation instanceof ISHR || operation instanceof LSHR)
         {
-            return left.longValue() >> right.longValue();
+            return first.longValue() >> second.longValue();
         }
         else
         {
-            throw new RuntimeException("Not supported operation");
+            throw new RuntimeException("error");
         }
     }
 
 
 
 
-    public static String getFoldedConstantSignature(InstructionHandle left, InstructionHandle right, ConstantPoolGen cpgen)
+    public static String extract_folded_const_sign(InstructionHandle first, InstructionHandle second, ConstantPoolGen cpgen)
     {
 
         ArrayList< String > places = new ArrayList < String > (Arrays.asList("D", "F", "J", "S", "I", "B"));
 
         for (String letter: places)
         {
-            if (checkSignature(left, right, cpgen, letter))
+            if (verif_sign(first, second, cpgen, letter))
             {
                 if (letter.equals("S") || letter.equals("B"))
                     return "I";
@@ -348,14 +353,12 @@ public class Toolkit {
 
         }
 
-        throw new RuntimeException("Type not defined: " +
-                getInstructionSignature(left, cpgen) + " " +
-                getInstructionSignature(right, cpgen));
+        throw new RuntimeException("error");
     }
 
-    public static boolean checkDynamicVariable(InstructionHandle h, InstructionList list)
+    public static boolean verif_active_var(InstructionHandle instruct, InstructionList register)
     {
-        if (checkIfCondition(h, list) || checkForLoop(h, list))
+        if (verif_if(instruct) || verif_for(instruct, register))
         {
             return true;
         }
@@ -365,11 +368,11 @@ public class Toolkit {
         }
     }
 
-    public static boolean checkIfCondition(InstructionHandle h, InstructionList list)
+    public static boolean verif_if(InstructionHandle instruct)
     {
-        Instruction checkingInstruction = h.getInstruction();
+        Instruction checkingInstruction = instruct.getInstruction();
         Instruction currentInstruction, currentSubInstruction;
-        InstructionHandle handleIterator = h;
+        InstructionHandle handleIterator = instruct;
         while (handleIterator != null)
         {
             try
@@ -407,11 +410,11 @@ public class Toolkit {
         return false;
     }
 
-    public static boolean checkForLoop(InstructionHandle h, InstructionList list)
+    public static boolean verif_for(InstructionHandle instruct, InstructionList register)
     {
-        Instruction checkingInstruction = h.getInstruction();
+        Instruction checkingInstruction = instruct.getInstruction();
         Instruction currentInstruction, previousInstruction, currentSubInstruction;
-        InstructionHandle handleIterator = list.getStart();
+        InstructionHandle handleIterator = register.getStart();
         while (handleIterator != null)
         {
             try
